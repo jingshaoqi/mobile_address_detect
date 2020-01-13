@@ -14,8 +14,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.color import Color
 
 from selenium import webdriver
+import threading
 
-def get_address(mobile_number,fileptr):
+def get_address(browser, mobile_number,fileptr):
     try:
         # 输入手机号的前7位
         browser.find_element_by_css_selector('.c-input').clear()
@@ -44,7 +45,7 @@ def get_address(mobile_number,fileptr):
     except Exception as e:
         return -1
 
-def GetAddressByPre(browser, filenamepre, str):
+def GetAddressByPre(browser, str):
     # 输入url地址
     url = 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%89%8B%E6%9C%BA%E5%BD%92%E5%B1%9E%E5%9C%B0&rsv_pq=e797ca61000af364&rsv_t=210aQzOr2cQr%2FwIqnFzK8hYJmEqKGncwLswHkPBFD1fW2ty8qfsmTcrEgLk&rqlang=cn&rsv_enter=1&rsv_dl=ib&rsv_sug3=13&rsv_sug1=2&rsv_sug7=100&rsv_sug2=0&inputT=3630&rsv_sug4=3630'
     browser.get(url)
@@ -53,47 +54,63 @@ def GetAddressByPre(browser, filenamepre, str):
     sufixnumber = '8888'
     if lenstr == 4:
         sufixnumber = '888'
-    filename = filenamepre +'_' + str + '.txt'
+    filename =  str + '.txt'
     fileptr = open(filename,"w")
     for i in range(range_size):
         mobile_number = "{}{:0>4d}{}".format(str, i, sufixnumber)
         while 1:
-            ret = get_address(mobile_number, fileptr)
+            ret = get_address(browser, mobile_number, fileptr)
             if ret != 0:
                 browser.get(url)
             else:
                 break
     fileptr.close()
 
-# 启动浏览器
-browser = webdriver.Firefox()
-browser.implicitly_wait(20)
+def WorkThread(Prenum):
+    try:
+        # 启动浏览器
+        browser = webdriver.Firefox()
+        browser.implicitly_wait(20)
+        str = '{}'.format(Prenum)
+        GetAddressByPre(browser, str)
+        # 关闭浏览器
+        browser.close()
+    except Exception as e:
+        print(e)
 
 try:
     Section_yidong = ["134", "135", "136", "137", "138", "139", "147", "150", "151", "152", "157", "158", "159", "172",
                       "178", "182", "183", "184", "187", "188", "198"]
-    Section_liantong = ["130", "131", "132", "145", "155", "156", "166", "171", "175", "176", "185", "186", "166"]
+    Section_liantong = ["130", "131", "132", "145", "155", "156", "166", "171", "175", "176", "185", "186"]
     Section_dianxin = ["133", "149", "153", "173", "177", "180", "181", "189", "199"]
-    Section_xuniyunyingshang = ["1700", "1701", "1702", "1703", "1704","1705", "1706", "1707", "1708", "1709", "171"]
+    Section_xuniyunyingshang = ["1700", "1701", "1702", "1703", "1704","1705", "1706", "1707", "1708", "1709"]
 
     print(len(Section_yidong) + len(Section_liantong) + len(Section_dianxin) + len(Section_xuniyunyingshang))
 
-    # yidong
-    for i in Section_yidong:
-        GetAddressByPre(browser, 'yidong', i)
+    PreNum = ["134", "135", "136", "137", "138", "139", "147", "150", "151", "152", "157", "158", "159", "172",
+              "178", "182", "183", "184", "187", "188", "198",
+              "130", "131", "132", "145", "155", "156", "166", "171", "175", "176", "185", "186",
+              "133", "149", "153", "173", "177", "180", "181", "189", "199",
+              "1700", "1701", "1702", "1703", "1704", "1705", "1706", "1707", "1708", "1709"]
 
-    # lian tong
-    for i in Section_liantong:
-        GetAddressByPre(browser, 'liangtong', i)
+    arrthd=[]
+    print(len(PreNum))
+    while len(PreNum) > 0:
+        thd = threading.Thread(target=WorkThread, args=(PreNum[0],))
+        arrthd.append(thd)
+        if len(arrthd) >= 10:
+            for i in arrthd:
+                i.start()
+            for i in arrthd:
+                i.join()
+            arrthd.clear()
+        PreNum.pop(0)
 
-    # dian xing
-    for i in Section_dianxin:
-        GetAddressByPre(browser, 'dianxin', i)
-
-    # xuniyunyingshang
-    for i in Section_xuniyunyingshang:
-        GetAddressByPre(browser, 'xuniyunyingshang', i)
+    for i in arrthd:
+        i.start()
+    for i in arrthd:
+        i.join()
 
 except Exception as e:
     print(e)
-#browser.quit()
+
