@@ -45,8 +45,10 @@ def get_address(browser, mobile_number,fileptr):
     except Exception as e:
         return -1
 
-def GetAddressByPre(browser, str):
+def GetAddressByPre(str):
     # 输入url地址
+    browser = webdriver.Firefox()
+    browser.implicitly_wait(20)
     url = 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%89%8B%E6%9C%BA%E5%BD%92%E5%B1%9E%E5%9C%B0&rsv_pq=e797ca61000af364&rsv_t=210aQzOr2cQr%2FwIqnFzK8hYJmEqKGncwLswHkPBFD1fW2ty8qfsmTcrEgLk&rqlang=cn&rsv_enter=1&rsv_dl=ib&rsv_sug3=13&rsv_sug1=2&rsv_sug7=100&rsv_sug2=0&inputT=3630&rsv_sug4=3630'
     browser.get(url)
     lenstr = len(str)
@@ -54,9 +56,14 @@ def GetAddressByPre(browser, str):
     sufixnumber = '8888'
     if lenstr == 4:
         sufixnumber = '888'
-    filename =  str + '.txt'
-    fileptr = open(filename,"w")
+    filename = str + '.txt'
+    fileptr = open(filename,"a+")
     for i in range(range_size):
+        if (i+1) % 1000 == 0:
+            browser.quit()
+            browser = webdriver.Firefox()
+            browser.implicitly_wait(20)
+            browser.get(url)
         mobile_number = "{}{:0>4d}{}".format(str, i, sufixnumber)
         while 1:
             ret = get_address(browser, mobile_number, fileptr)
@@ -65,16 +72,12 @@ def GetAddressByPre(browser, str):
             else:
                 break
     fileptr.close()
-
+    browser.quit()
 def WorkThread(Prenum):
     try:
         # 启动浏览器
-        browser = webdriver.Firefox()
-        browser.implicitly_wait(20)
         str = '{}'.format(Prenum)
-        GetAddressByPre(browser, str)
-        # 关闭浏览器
-        browser.close()
+        GetAddressByPre(str)
     except Exception as e:
         print(e)
 
@@ -98,7 +101,7 @@ try:
     while len(PreNum) > 0:
         thd = threading.Thread(target=WorkThread, args=(PreNum[0],))
         arrthd.append(thd)
-        if len(arrthd) >= 4:
+        if len(arrthd) >= 8:
             for i in arrthd:
                 i.start()
             for i in arrthd:
