@@ -2,7 +2,6 @@
 import datetime
 import time
 import sys
-import pymd5
 import  os
 # NO.2 使用hashlib
 import hashlib
@@ -36,9 +35,11 @@ time.sleep(1)
 forget_passwd = driver.find_element_by_css_selector('.txt-lighter')
 forget_passwd.click()
 time.sleep(1)
+mobile_get = driver.find_element_by_css_selector('#mobile_find_back_main')
+mobile_get.click()
 repeat_count=0
 while 1:
-    imgbtn = driver.find_element_by_css_selector('#img_rand_code')
+    imgbtn = driver.find_element_by_css_selector('#img_rand_code_password0')
     res_src = imgbtn.get_attribute('src')
     # 通过requests发送一个get请求到图片地址，返回的响应就是图片内容
     r = requests.get(res_src)
@@ -56,4 +57,4 @@ while 1:
         # 对于图片类型的通过r.content方式访问响应内容，将响应内容写入baidu.png中
         f.write(r.content)
     imgbtn.click()
-    time.sleep(0.5)
+    time.sleep(1)
