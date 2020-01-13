@@ -98,7 +98,7 @@ try:
     while len(PreNum) > 0:
         thd = threading.Thread(target=WorkThread, args=(PreNum[0],))
         arrthd.append(thd)
-        if len(arrthd) >= 10:
+        if len(arrthd) >= 4:
             for i in arrthd:
                 i.start()
             for i in arrthd:
