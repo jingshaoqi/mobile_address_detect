@@ -53,13 +53,14 @@ def GetAddressByPre(str):
     browser.get(url)
     lenstr = len(str)
     range_size = 10000
+
     sufixnumber = '8888'
     if lenstr == 4:
         sufixnumber = '888'
     filename = str + '.txt'
     fileptr = open(filename,"a+")
     for i in range(range_size):
-        if (i+1) % 1000 == 0:
+        if (i+1) % 5000 == 0:
             browser.quit()
             browser = webdriver.Firefox()
             browser.implicitly_wait(20)
@@ -73,6 +74,8 @@ def GetAddressByPre(str):
                 break
     fileptr.close()
     browser.quit()
+    with  open('finish.txt', 'a+', encoding='utf-8') as f:
+        f.write('{}\n'.format(str))
 def WorkThread(Prenum):
     try:
         # 启动浏览器
@@ -97,11 +100,28 @@ try:
               "1700", "1701", "1702", "1703", "1704", "1705", "1706", "1707", "1708", "1709"]
 
     arrthd=[]
+    fishfile = 'finish.txt'
+    fishdata = []
+    ex = os.access(fishfile, os.R_OK)
+    if ex:
+        fp = open('finish.txt','r',encoding='utf-8')
+        fishdata = fp.readlines()
+        re = '134\n' in fishdata
+        print(re)
+    else:
+        with  open('finish.txt', 'a+', encoding='utf-8') as f:
+            f.write('963\n')
+
     print(len(PreNum))
     while len(PreNum) > 0:
+        ln = '{}\n'.format(PreNum[0])
+        fd = ln in fishdata
+        if fd:
+            PreNum.pop(0)
+            continue
         thd = threading.Thread(target=WorkThread, args=(PreNum[0],))
         arrthd.append(thd)
-        if len(arrthd) >= 8:
+        if len(arrthd) >= 3:
             for i in arrthd:
                 i.start()
             for i in arrthd:
