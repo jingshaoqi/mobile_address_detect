@@ -74,8 +74,10 @@ def GetAddressByPre(str):
                 break
     fileptr.close()
     browser.quit()
+    lock.acquire()
     with  open('finish.txt', 'a+', encoding='utf-8') as f:
         f.write('{}\n'.format(str))
+    lock.release()
 def WorkThread(Prenum):
     try:
         # 启动浏览器
@@ -85,6 +87,7 @@ def WorkThread(Prenum):
         print(e)
 
 try:
+    lock = threading.RLock()
     Section_yidong = ["134", "135", "136", "137", "138", "139", "147", "150", "151", "152", "157", "158", "159", "172",
                       "178", "182", "183", "184", "187", "188", "198"]
     Section_liantong = ["130", "131", "132", "145", "155", "156", "166", "171", "175", "176", "185", "186"]
