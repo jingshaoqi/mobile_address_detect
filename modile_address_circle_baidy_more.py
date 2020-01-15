@@ -45,6 +45,23 @@ def get_address(browser, mobile_number,fileptr):
     except Exception as e:
         return -1
 
+def GetFinishedNum(qq):
+    filename = qq + '.txt'
+    ex = os.access(filename, os.R_OK)
+    if ex:
+        fp = open(filename, 'r')
+        fishdata = fp.readlines()
+        linecount = len(fishdata)
+        if linecount < 1:
+            return 0
+        lastline = fishdata[linecount - 1]
+        n1 = len(qq)
+        n2 = n1 + 4
+        num = lastline[n1:n2]
+        return int(num)
+    else:
+        return 0
+
 def GetAddressByPre(str):
     # 输入url地址
     browser = webdriver.Firefox()
@@ -54,12 +71,14 @@ def GetAddressByPre(str):
     lenstr = len(str)
     range_size = 10000
 
+    firstnum = GetFinishedNum(str) + 1
+
     sufixnumber = '8888'
     if lenstr == 4:
         sufixnumber = '888'
     filename = str + '.txt'
     fileptr = open(filename,"a+")
-    for i in range(range_size):
+    for i in range(firstnum, range_size):
         if (i+1) % 5000 == 0:
             browser.quit()
             browser = webdriver.Firefox()
@@ -74,20 +93,31 @@ def GetAddressByPre(str):
                 break
     fileptr.close()
     browser.quit()
-    lock.acquire()
-    with  open('finish.txt', 'a+', encoding='utf-8') as f:
-        f.write('{}\n'.format(str))
-    lock.release()
-def WorkThread(Prenum):
+
+def SectionFinished(yy):
+    filename = yy + '.txt'
+    ex = os.access(filename, os.R_OK)
+    if ex:
+        fp = open(filename, 'r')
+        fishdata = fp.readlines()
+        ln = len(fishdata)
+        if ln == 10000:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def WorkThread(tt):
     try:
         # 启动浏览器
-        str = '{}'.format(Prenum)
+        print("decet:{}".format(tt))
+        str = '{}'.format(tt)
         GetAddressByPre(str)
     except Exception as e:
         print(e)
 
 try:
-    lock = threading.RLock()
     Section_yidong = ["134", "135", "136", "137", "138", "139", "147", "150", "151", "152", "157", "158", "159", "172",
                       "178", "182", "183", "184", "187", "188", "198"]
     Section_liantong = ["130", "131", "132", "145", "155", "156", "166", "171", "175", "176", "185", "186"]
@@ -103,22 +133,10 @@ try:
               "1700", "1701", "1702", "1703", "1704", "1705", "1706", "1707", "1708", "1709"]
 
     arrthd=[]
-    fishfile = 'finish.txt'
-    fishdata = []
-    ex = os.access(fishfile, os.R_OK)
-    if ex:
-        fp = open('finish.txt','r',encoding='utf-8')
-        fishdata = fp.readlines()
-        re = '134\n' in fishdata
-        print(re)
-    else:
-        with  open('finish.txt', 'a+', encoding='utf-8') as f:
-            f.write('963\n')
 
     print(len(PreNum))
     while len(PreNum) > 0:
-        ln = '{}\n'.format(PreNum[0])
-        fd = ln in fishdata
+        fd = SectionFinished(PreNum[0])
         if fd:
             PreNum.pop(0)
             continue
