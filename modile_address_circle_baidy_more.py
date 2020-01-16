@@ -53,14 +53,14 @@ def GetFinishedNum(qq):
         fishdata = fp.readlines()
         linecount = len(fishdata)
         if linecount < 1:
-            return 0
+            return -1
         lastline = fishdata[linecount - 1]
         n1 = len(qq)
         n2 = n1 + 4
         num = lastline[n1:n2]
         return int(num)
     else:
-        return 0
+        return -1
 
 def GetAddressByPre(str):
     # 输入url地址
@@ -71,7 +71,7 @@ def GetAddressByPre(str):
     lenstr = len(str)
     range_size = 10000
 
-    firstnum = GetFinishedNum(str) + 1
+    firstnum = GetFinishedNum(str)
 
     sufixnumber = '8888'
     if lenstr == 4:
@@ -142,7 +142,7 @@ try:
             continue
         thd = threading.Thread(target=WorkThread, args=(PreNum[0],))
         arrthd.append(thd)
-        if len(arrthd) >= 3:
+        if len(arrthd) >= 2:
             for i in arrthd:
                 i.start()
             for i in arrthd:
