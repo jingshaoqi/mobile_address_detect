@@ -28,7 +28,6 @@ def get_address(browser, mobile_number,fileptr):
         res = browser.find_element_by_css_selector('.op-phoneajax-tip')
         att = res.get_attribute('style')
         if att.find('block') != -1:
-            #with open(finename, 'a+') as f:
             fileptr.write('{} {} {}\n'.format(mobile_number, "invalid","invalid"))
             fileptr.flush()
             #print(mobile_number, "invalid","invalid")
@@ -37,7 +36,6 @@ def get_address(browser, mobile_number,fileptr):
         address = res_address.text
         res_yunyingshang = browser.find_element_by_css_selector('.op-phoneajax-answer-font > span:nth-child(3)')
         yunyingshang = res_yunyingshang.text
-        #with open(finename, 'a+') as f:
         fileptr.write('{} {} {}\n'.format(mobile_number, address, yunyingshang))
         fileptr.flush()
         #print(mobile_number, address, yunyingshang)
@@ -49,7 +47,7 @@ def GetFinishedNum(qq):
     filename = qq + '.txt'
     ex = os.access(filename, os.R_OK)
     if ex:
-        fp = open(filename, 'r')
+        fp = open(filename, 'r', encoding='utf-8')
         fishdata = fp.readlines()
         linecount = len(fishdata)
         if linecount < 1:
@@ -71,18 +69,18 @@ def GetAddressByPre(str):
     lenstr = len(str)
     range_size = 10000
 
-    firstnum = GetFinishedNum(str)
+    firstnum = GetFinishedNum(str) + 1
 
     sufixnumber = '8888'
     if lenstr == 4:
         sufixnumber = '888'
     filename = str + '.txt'
-    fileptr = open(filename,"a+")
+    fileptr = open(filename,"a+", encoding='utf-8')
     for i in range(firstnum, range_size):
         if (i+1) % 5000 == 0:
             browser.quit()
             browser = webdriver.Firefox()
-            browser.implicitly_wait(20)
+            browser.implicitly_wait(40)
             browser.get(url)
         mobile_number = "{}{:0>4d}{}".format(str, i, sufixnumber)
         while 1:
@@ -98,10 +96,10 @@ def SectionFinished(yy):
     filename = yy + '.txt'
     ex = os.access(filename, os.R_OK)
     if ex:
-        fp = open(filename, 'r')
+        fp = open(filename, 'r', encoding='utf-8')
         fishdata = fp.readlines()
         ln = len(fishdata)
-        if ln == 10000:
+        if ln >= 10000:
             return True
         else:
             return False
@@ -116,6 +114,23 @@ def WorkThread(tt):
         GetAddressByPre(str)
     except Exception as e:
         print(e)
+
+def Execuse(pnum):
+    arrthd = []
+    while len(pnum) > 0:
+        thd = threading.Thread(target=WorkThread, args=(pnum[0],))
+        arrthd.append(thd)
+        if len(arrthd) >= 2:
+            for i in arrthd:
+                i.start()
+            for i in arrthd:
+                i.join()
+            arrthd.clear()
+        pnum.pop(0)
+    for i in arrthd:
+        i.start()
+    for i in arrthd:
+        i.join()
 
 try:
     Section_yidong = ["134", "135", "136", "137", "138", "139", "147", "150", "151", "152", "157", "158", "159", "172",
@@ -132,29 +147,19 @@ try:
               "133", "149", "153", "173", "177", "180", "181", "189", "199",
               "1700", "1701", "1702", "1703", "1704", "1705", "1706", "1707", "1708", "1709"]
 
-    arrthd=[]
-
     print(len(PreNum))
-    while len(PreNum) > 0:
-        fd = SectionFinished(PreNum[0])
-        if fd:
-            PreNum.pop(0)
-            continue
-        thd = threading.Thread(target=WorkThread, args=(PreNum[0],))
-        arrthd.append(thd)
-        if len(arrthd) >= 2:
-            for i in arrthd:
-                i.start()
-            for i in arrthd:
-                i.join()
-            arrthd.clear()
-        PreNum.pop(0)
 
-    for i in arrthd:
-        i.start()
-    for i in arrthd:
-        i.join()
-
+    while 1:
+        # is all finish
+        chknum = []
+        for w in PreNum:
+            fd = SectionFinished(w)
+            if fd == False:
+                chknum.append(w)
+        if len(chknum) == 0:
+            break
+        Execuse(chknum)
+    print('all finished')
 except Exception as e:
     print(e)
 
