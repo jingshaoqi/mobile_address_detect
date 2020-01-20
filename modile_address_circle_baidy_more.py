@@ -70,6 +70,8 @@ def GetAddressByPre(str):
     range_size = 10000
 
     firstnum = GetFinishedNum(str) + 1
+    if firstnum >= 10000:
+        return
 
     sufixnumber = '8888'
     if lenstr == 4:
